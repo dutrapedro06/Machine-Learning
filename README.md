@@ -1,7 +1,8 @@
 [README_repo.md](https://github.com/user-attachments/files/28371592/README_repo.md)
 # 🤖 Machine Learning — Pedro Pereira Dutra
 
-**Aluno:** Pedro Pereira Dutra — 
+**Aluno:** Pedro Pereira Dutra
+
 **Disciplina:** Aprendizado de Máquina  
 **Instituição:** IDP
 
