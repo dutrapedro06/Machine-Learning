@@ -1,4 +1,4 @@
-[README_repo.md](https://github.com/user-attachments/files/28371592/README_repo.md)
+[README_repo.md](https://github.com/user-attachments/files/28371647/README_repo.md)
 # 🤖 Machine Learning — Pedro Pereira Dutra
 
 **Aluno:** Pedro Pereira Dutra
@@ -7,7 +7,33 @@
 
 **Instituição:** IDP
 
-Repositório com todos os projetos desenvolvidos ao longo da disciplina, cobrindo MLOps, Classificação, Regressão e Clusterização.
+---
+
+## 📖 Sobre o Repositório
+
+Este repositório reúne os projetos práticos desenvolvidos ao longo da disciplina de **Aprendizado de Máquina**. Durante o curso, foram estudados e aplicados os principais paradigmas do ML supervisionado e não supervisionado:
+
+- **Classificação** — previsão de categorias a partir de atributos, com tratamento de desbalanceamento de classes e otimização de hiperparâmetros
+- **Regressão** — previsão de valores contínuos com modelos lineares e ensemble, avaliados por RMSE e R²
+- **Clusterização** — agrupamento não supervisionado com K-Means, DBSCAN e Agglomerative Clustering, com análise de métricas internas (Silhouette, Davies-Bouldin)
+- **MLOps** — ciclo completo de produção de um modelo: treinamento, exportação, API REST e deploy em container Docker
+
+Todos os projetos seguem um fluxo completo: definição do problema → análise exploratória → pré-processamento → modelagem → otimização de hiperparâmetros → avaliação e interpretação dos resultados.
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+| Categoria | Ferramentas |
+|-----------|-------------|
+| Linguagem | Python 3 |
+| Manipulação de dados | Pandas, NumPy |
+| Visualização | Matplotlib, Seaborn |
+| Machine Learning | Scikit-learn, XGBoost |
+| Otimização de hiperparâmetros | Scikit-optimize (BayesSearchCV) |
+| Balanceamento de classes | Imbalanced-learn (SMOTE) |
+| API e deploy | Flask, Docker |
+| Ambiente de desenvolvimento | Google Colab |
 
 ---
 
@@ -127,20 +153,6 @@ Foram comparados K-Means, Agglomerative Clustering e DBSCAN. Escolha de k=4 just
 **Melhor métrica:** Agglomerative Ward → Silhouette 0,6722 | Davies-Bouldin 0,6953.
 
 → [README completo da Clusterização](./AV2/Clusterizacao/README.md)
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Python 3**
-- **Pandas / NumPy** — manipulação de dados
-- **Matplotlib / Seaborn** — visualizações
-- **Scikit-learn** — modelos, pré-processamento, métricas
-- **XGBoost** — gradient boosting (Regressão)
-- **Scikit-optimize** — Bayesian Search
-- **Imbalanced-learn** — SMOTE (testado na Classificação)
-- **Flask** — API REST (AV1)
-- **Docker** — containerização (AV1)
 
 ---
 
