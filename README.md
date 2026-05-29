@@ -4,6 +4,7 @@
 **Aluno:** Pedro Pereira Dutra
 
 **Disciplina:** Aprendizado de Máquina  
+
 **Instituição:** IDP
 
 Repositório com todos os projetos desenvolvidos ao longo da disciplina, cobrindo MLOps, Classificação, Regressão e Clusterização.
