@@ -1,7 +1,7 @@
 # Sleep Disorder Risk Classification
 
-**Aluno:** Pedro Pereira Dutra
-
+**Aluno:** Pedro Pereira Dutra  
+**RA:** 24101026  
 **Disciplina:** Aprendizado de Máquina — Notebook 1 (Classificação)
 
 ---
@@ -35,10 +35,12 @@ Cada registro captura um instantâneo diário completo de um paciente, incluindo
 
 | Classe | Registros | Percentual |
 |--------|-----------|------------|
-| Healthy | 54.156 | 54% |
-| Mild | 33.479 | 33% |
-| Moderate | 8.299 | 8% |
-| Severe | 4.066 | 4% |
+| Healthy | 54.156 | 54,2% |
+| Mild | 33.479 | 33,5% |
+| Moderate | 8.299 | 8,3% |
+| Severe | 4.066 | 4,1% |
+
+> O dataset é **desbalanceado**: Healthy representa mais da metade dos registros, enquanto Severe representa apenas 4%. Por isso, **acurácia sozinha não é uma métrica confiável** — um modelo que chutasse "Healthy" para tudo atingiria 54% sem aprender nada. A métrica principal adotada neste projeto é o **F1-Macro**, que trata todas as classes igualmente.
 
 ---
 
@@ -46,11 +48,11 @@ Cada registro captura um instantâneo diário completo de um paciente, incluindo
 
 Foram realizadas 12 visualizações para entender a relação entre as variáveis e o risco de distúrbio do sono. As principais descobertas:
 
-- **Qualidade do sono** (`sleep_quality_score`): queda drástica da classe Healthy (média 5.8) para Severe (média 2.3) — a variável com a relação mais clara
-- **Duração do sono** (`sleep_duration_hrs`): pessoas Severe dormem em média 2 horas a menos que as Healthy (4.9h vs 7.0h)
-- **Nível de estresse** (`stress_score`): progressão consistente de 5.0 (Healthy) até 7.5 (Severe)
+- **Qualidade do sono** (`sleep_quality_score`): queda drástica da classe Healthy (média 5,8) para Severe (média 2,3) — a variável com a relação mais clara
+- **Duração do sono** (`sleep_duration_hrs`): pessoas Severe dormem em média 2 horas a menos que as Healthy (4,9h vs 7,0h)
+- **Nível de estresse** (`stress_score`): progressão consistente de 5,0 (Healthy) até 7,5 (Severe)
 - **Condição mental**: pessoas com Ansiedade, Depressão ou ambas concentram muito mais casos Moderate e Severe
-- **Cafeína antes de dormir**: consumo quase dobra do Healthy (~34mg) para o Severe (~59mg)
+- **Cafeína antes de dormir**: consumo quase dobra do Healthy (~34mg) para Severe (~59mg)
 - **Horas trabalhadas**: carga elevada (8h+) está associada a maior risco
 - **País e gênero**: baixo poder preditivo — os padrões se mantêm uniformes entre grupos
 
@@ -60,48 +62,65 @@ Foram realizadas 12 visualizações para entender a relação entre as variávei
 
 1. **Remoção de colunas irrelevantes:** `person_id` e `country`
 2. **Codificação de variáveis categóricas** com `LabelEncoder`: `gender`, `occupation`, `chronotype`, `mental_health_condition`, `season`, `day_type`
-3. **Codificação da variável alvo:** `Healthy=1`, `Mild=2`, `Moderate=3`, `Severe=0` (ordem alfabética)
+3. **Codificação da variável alvo:** `Healthy=0`, `Mild=1`, `Moderate=2`, `Severe=3`
 4. **Divisão dos dados:** 80% treino / 20% teste (estratificada)
-5. **Teste com SMOTE:** O balanceamento foi avaliado, mas **piorou** o desempenho de todos os modelos — optou-se por manter os dados originais
+5. **Teste com SMOTE:** O balanceamento foi avaliado, mas **piorou** o desempenho de todos os modelos — o SMOTE gerou instâncias sintéticas que não refletiram bem o padrão real dos dados. Optou-se por manter os dados originais com `class_weight='balanced'` nos modelos.
 
 ---
 
 ## 🤖 Modelos Testados
 
-Foram comparados 6 algoritmos no conjunto de teste sem balanceamento:
+Foram comparados 6 algoritmos no conjunto de teste, usando **F1-Macro** como métrica principal e `class_weight='balanced'` para corrigir o desbalanceamento:
 
-| Modelo | Acurácia | F1-Score (weighted) |
-|--------|----------|----------------------|
-| **Decision Tree** | **90.20%** | **90.20%** |
-| **Random Forest** | **90.16%** | **89.79%** |
-| Extra Trees | 83.95% | 83.11% |
-| Logistic Regression | 73.97% | 72.96% |
-| Naive Bayes | 71.84% | 72.34% |
-| KNN | 61.60% | 58.24% |
+| Modelo | Acurácia | F1-Macro |
+|--------|----------|----------|
+| **Random Forest** | **89,53%** | **78,23%** |
+| **Decision Tree** | **88,78%** | **76,48%** |
+| Extra Trees | 83,80% | 69,95% |
+| Naive Bayes | 71,84% | 61,21% |
+| Logistic Regression | 69,03% | 59,35% |
+| KNN | 61,60% | 36,45% |
 
-Os dois melhores modelos (**Decision Tree** e **Random Forest**) foram selecionados para otimização de hiperparâmetros.
+Os dois melhores modelos em F1-Macro (**Random Forest** e **Decision Tree**) foram selecionados para o pipeline de otimização.
 
 ---
 
-## 🔧 Otimização de Hiperparâmetros
+## 🔧 Otimização de Hiperparâmetros — Pipeline em Cascata
 
-Três métodos de busca foram aplicados a ambos os modelos:
-
-| Método | Decision Tree | Random Forest |
-|--------|--------------|---------------|
-| Base | 90.20% | 89.53% |
-| Bayesian Search | 90.90% (+0.70%) | 90.46% (+0.93%) |
-| **Randomized Search** | **91.12% (+0.92%)** | 90.31% (+0.78%) |
-| Grid Search | 90.54% (+0.34%) | 90.29% (+0.76%) |
-
-### Melhores Hiperparâmetros — Decision Tree (Randomized Search)
+As três técnicas de otimização foram aplicadas de forma **sequencial e colaborativa** — cada etapa alimenta e refina a seguinte, em vez de competirem de forma independente:
 
 ```
-max_depth:         None  (sem limite de profundidade)
-min_samples_leaf:  4
-min_samples_split: 20
-criterion:         entropy
+Bayesian Search  →  Randomized Search  →  Grid Search
+ (espaço amplo)      (região refinada)     (grade precisa)
 ```
+
+- **Bayesian Search:** Explora um espaço amplo de forma inteligente, aprendendo quais regiões são mais promissoras a cada iteração
+- **Randomized Search:** Recebe os melhores parâmetros do Bayesian e realiza busca aleatória em uma região estreitada ao redor desses valores
+- **Grid Search:** Recebe os melhores parâmetros do Randomized e executa busca exaustiva em uma grade pequena e precisa
+
+**Métrica de otimização: F1-Macro** em todas as etapas.
+
+### Resultados — Decision Tree
+
+| Etapa | F1-Macro | Acurácia | Tempo |
+|-------|----------|----------|-------|
+| Base (class_weight) | 76,48% | 88,78% | — |
+| 1. Bayesian Search | 77,84% | 88,66% | 127,6s |
+| 2. Randomized Search | 77,92% | 89,01% | 98,3s |
+| 3. Grid Search | 77,92% | 89,01% | 71,6s |
+
+**Parâmetros finais:** `criterion=entropy`, `max_depth=14`, `min_samples_leaf=1`, `min_samples_split=4`
+
+### Resultados — Random Forest
+
+| Etapa | F1-Macro | Acurácia | Tempo |
+|-------|----------|----------|-------|
+| Base (class_weight) | 78,23% | 89,53% | — |
+| 1. Bayesian Search | 81,97% | 90,50% | ~30 min |
+| 2. Randomized Search | 81,73% | 90,16% | ~33 min |
+| 3. Grid Search | 81,77% | 90,19% | ~1h45 min |
+
+**Parâmetros finais:** `n_estimators=176`, `max_depth=36`, `min_samples_leaf=3`, `min_samples_split=11`
 
 ---
 
@@ -109,11 +128,20 @@ criterion:         entropy
 
 O melhor modelo obtido foi:
 
-> **Decision Tree + Randomized Search → 91.12% de acurácia**
+> **Random Forest + Pipeline Cascata → F1-Macro 81,77% | Acurácia 90,19%**
 
-A Decision Tree superou o Random Forest em todos os métodos de otimização, resultado atípico que pode ser explicado pela natureza **sintética e bem estruturada** do dataset, que favorece modelos mais simples.
+### Métricas por Classe — Modelo Final
 
-O **Randomized Search** se mostrou o método mais eficiente: encontrou o melhor resultado em apenas ~48 segundos, enquanto o Grid Search levou ~72 segundos com resultado inferior — confirmando que a exploração aleatória pode ser tão eficaz quanto testar todas as combinações, com menor custo computacional.
+| Classe | Precisão | Recall | F1 | Suporte |
+|--------|----------|--------|----|---------|
+| Healthy | 0,97 | 0,96 | 0,96 | 10.831 |
+| Mild | 0,87 | 0,89 | 0,88 | 6.696 |
+| Moderate | 0,65 | 0,67 | 0,66 | 1.660 |
+| Severe | 0,81 | 0,74 | 0,77 | 813 |
+
+O modelo demonstra que o aprendizado é **genuíno** — não é produto do desbalanceamento. A classe Moderate, por exemplo, saiu de recall 0,46 (modelo base) para 0,67 após o pipeline cascata, um ganho de +21 p.p. na classe mais difícil de detectar.
+
+O pipeline cascata foi essencial para o Random Forest: sem o Bayesian e o Randomized estreitando o espaço antes, um Grid Search sobre o espaço amplo original seria computacionalmente inviável.
 
 ---
 
@@ -136,8 +164,8 @@ MACHINE LEARNING/
 ├── AV1/
 └── AV2/
     ├── Classificacao/
-    │   ├── classificacao_Pedro_Dutra.ipynb #notebok
-    │   ├── README.md                       # esse arquivo
+    │   ├── classificacao_Pedro_Dutra.ipynb  # notebook
+    │   ├── README.md                        # esse arquivo
     │   └── sleep_health_dataset.csv
     ├── Clusterizacao/
     └── Regressao/
@@ -153,3 +181,5 @@ MACHINE LEARNING/
 2. Monte o Google Drive quando solicitado
 3. Faça o upload do dataset no caminho indicado acima
 4. Execute as células em ordem
+
+> ⚠️ **Atenção:** O pipeline de otimização do Random Forest é computacionalmente pesado (~2h30 no total). Recomenda-se usar GPU/TPU no Colab ou reduzir `n_iter` para prototipagem rápida.
